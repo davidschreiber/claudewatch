@@ -13,7 +13,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      security-events: write
+      checks: write
       actions: read
     
     steps:
@@ -47,21 +47,18 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x ./gradlew
       
-    - name: Run lint checks with SARIF output
+    - name: Run Android Lint
       run: ./gradlew lintDebug --continue
-      
-    - name: List generated SARIF files
+        
+    - name: Publish Android Lint Results
+      uses: yutailang0119/action-android-lint@v4
       if: always()
-      run: find . -name "lint-results-debug.sarif" -type f || true
-      
-    - name: Upload SARIF to GitHub code scanning
-      uses: github/codeql-action/upload-sarif@v3
-      if: always() && hashFiles('*/build/reports/lint-results-debug.sarif') != ''
       with:
-        sarif_file: |
-          mobile/build/reports/lint-results-debug.sarif
-          wear/build/reports/lint-results-debug.sarif
-        category: android-lint
+        report-path: |
+          mobile/build/reports/lint-results-*.xml
+          wear/build/reports/lint-results-*.xml
+        ignore-warnings: false
+        continue-on-error: false
         
     - name: Upload lint reports
       uses: actions/upload-artifact@v4
@@ -71,7 +68,6 @@ jobs:
         path: |
           */build/reports/lint-results-*.html
           */build/reports/lint-results-*.xml
-          */build/reports/lint-results-*.sarif
 
   test:
     name: Unit Tests
