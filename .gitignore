@@ -143,3 +143,6 @@ hs_err_pid*
 
 # Android Profiling
 *.hprof
+
+# Claude Code local configuration
+.claude/mcp-config.json
