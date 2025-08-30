@@ -1,0 +1,183 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+        
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+      
+    - name: Run lint checks
+      run: ./gradlew lintDebug --continue
+      
+    - name: Upload lint reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: lint-reports
+        path: |
+          */build/reports/lint-results-*.html
+          */build/reports/lint-results-*.xml
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+        
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+      
+    - name: Run unit tests
+      run: ./gradlew test --continue
+      
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports
+        path: |
+          */build/reports/tests/*/
+          */build/test-results/*/
+          
+    - name: Upload test results to Codecov
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        files: |
+          */build/reports/jacoco/test/jacocoTestReport.xml
+        fail_ci_if_error: false
+
+  build:
+    name: Build APKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [lint, test]
+    
+    strategy:
+      matrix:
+        variant: [Debug, Release]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+        
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+      
+    - name: Build ${{ matrix.variant }} APK
+      run: ./gradlew assemble${{ matrix.variant }} --no-daemon
+      
+    - name: Upload ${{ matrix.variant }} APKs
+      uses: actions/upload-artifact@v4
+      with:
+        name: apk-${{ matrix.variant }}
+        path: |
+          mobile/build/outputs/apk/${{ matrix.variant == 'Debug' && 'debug' || 'release' }}/*.apk
+          wear/build/outputs/apk/${{ matrix.variant == 'Debug' && 'debug' || 'release' }}/*.apk
+        retention-days: 30
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  dependency-check:
+    name: Dependency Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+        
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+      
+    - name: Check for dependency updates
+      run: ./gradlew dependencyUpdates --continue
+      
+    - name: Upload dependency reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: dependency-reports
+        path: build/dependencyUpdates/
