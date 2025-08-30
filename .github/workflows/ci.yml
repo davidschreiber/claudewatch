@@ -33,9 +33,18 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x ./gradlew
       
-    - name: Run lint checks
+    - name: Run lint checks with SARIF output
       run: ./gradlew lintDebug --continue
       
+    - name: Upload SARIF to GitHub code scanning
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: |
+          mobile/build/reports/lint-results-debug.sarif
+          wear/build/reports/lint-results-debug.sarif
+        category: android-lint
+        
     - name: Upload lint reports
       uses: actions/upload-artifact@v4
       if: always()
@@ -44,6 +53,7 @@ jobs:
         path: |
           */build/reports/lint-results-*.html
           */build/reports/lint-results-*.xml
+          */build/reports/lint-results-*.sarif
 
   test:
     name: Unit Tests
@@ -77,6 +87,16 @@ jobs:
     - name: Generate coverage reports
       run: ./gradlew jacocoTestReport --continue
       
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: |
+          */build/test-results/**/*.xml
+        check_name: "Unit Test Results"
+        comment_mode: create new
+        compare_to_earlier_commit: false
+        
     - name: Upload test reports
       uses: actions/upload-artifact@v4
       if: always()

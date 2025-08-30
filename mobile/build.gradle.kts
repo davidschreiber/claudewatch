@@ -18,6 +18,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    lint {
+        sarifOutput = file("build/reports/lint-results-debug.sarif")
+    }
+
     buildTypes {
         debug {
             enableUnitTestCoverage = true

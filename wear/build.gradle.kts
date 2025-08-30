@@ -18,6 +18,10 @@ android {
 
     }
 
+    lint {
+        sarifOutput = file("build/reports/lint-results-debug.sarif")
+    }
+
     buildTypes {
         debug {
             enableUnitTestCoverage = true
