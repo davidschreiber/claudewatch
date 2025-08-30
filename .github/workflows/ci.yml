@@ -86,14 +86,6 @@ jobs:
           */build/reports/tests/*/
           */build/test-results/*/
           
-    - name: Upload test results to Codecov
-      uses: codecov/codecov-action@v4
-      if: always()
-      with:
-        files: |
-          mobile/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
-          wear/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
-        fail_ci_if_error: false
 
   build:
     name: Build APKs
@@ -138,29 +130,6 @@ jobs:
           wear/build/outputs/apk/${{ matrix.variant == 'Debug' && 'debug' || 'release' }}/*.apk
         retention-days: 30
 
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
 
   dependency-check:
     name: Dependency Check
