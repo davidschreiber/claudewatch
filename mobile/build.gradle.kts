@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    jacoco
 }
 
 android {
@@ -18,6 +19,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+            enableAndroidTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -44,4 +49,40 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+// Jacoco configuration
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*"
+    )
+    
+    val buildDir = layout.buildDirectory.get().asFile
+    val debugTree = fileTree("$buildDir/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+    val mainSrc = "${project.projectDir}/src/main/java"
+    val kotlinMainSrc = "${project.projectDir}/src/main/kotlin"
+    
+    sourceDirectories.setFrom(files(listOf(mainSrc, kotlinMainSrc)))
+    classDirectories.setFrom(files(listOf(debugTree)))
+    executionData.setFrom(fileTree(buildDir) {
+        include(listOf("**/*.exec", "**/*.ec"))
+    })
 }

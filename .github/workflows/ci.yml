@@ -74,6 +74,9 @@ jobs:
     - name: Run unit tests
       run: ./gradlew test --continue
       
+    - name: Generate coverage reports
+      run: ./gradlew jacocoTestReport --continue
+      
     - name: Upload test reports
       uses: actions/upload-artifact@v4
       if: always()
@@ -88,7 +91,8 @@ jobs:
       if: always()
       with:
         files: |
-          */build/reports/jacoco/test/jacocoTestReport.xml
+          mobile/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          wear/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         fail_ci_if_error: false
 
   build:
