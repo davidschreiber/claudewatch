@@ -50,9 +50,13 @@ jobs:
     - name: Run lint checks with SARIF output
       run: ./gradlew lintDebug --continue
       
+    - name: List generated SARIF files
+      if: always()
+      run: find . -name "lint-results-debug.sarif" -type f || true
+      
     - name: Upload SARIF to GitHub code scanning
       uses: github/codeql-action/upload-sarif@v3
-      if: always()
+      if: always() && hashFiles('*/build/reports/lint-results-debug.sarif') != ''
       with:
         sarif_file: |
           mobile/build/reports/lint-results-debug.sarif
@@ -77,6 +81,7 @@ jobs:
       contents: read
       checks: write
       actions: read
+      pull-requests: write
     
     steps:
     - name: Checkout code
@@ -122,7 +127,7 @@ jobs:
         files: |
           */build/test-results/**/*.xml
         check_name: "Unit Test Results"
-        comment_mode: create new
+        comment_mode: always
         compare_to_earlier_commit: false
         
     - name: Upload test reports
@@ -196,6 +201,7 @@ jobs:
     permissions:
       contents: read
       actions: read
+      pull-requests: write
     
     steps:
     - name: Checkout code
