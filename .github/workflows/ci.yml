@@ -58,7 +58,6 @@ jobs:
           mobile/build/reports/lint-results-*.xml
           wear/build/reports/lint-results-*.xml
         ignore-warnings: false
-        continue-on-error: false
         
     - name: Upload lint reports
       uses: actions/upload-artifact@v4
