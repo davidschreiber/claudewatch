@@ -32,10 +32,24 @@ cd claudewatch
 
 ```
 📦 claudewatch/
-├── 📱 mobile/     # Phone companion app
-├── ⌚ wear/       # WearOS app  
-└── 🔧 shared/     # Common code
+├── 🖥️ server/     # Ktor backend (Railway deployment)
+├── 📱 mobile/     # Phone companion app (FCM receiver)
+├── ⌚ wear/       # WearOS app (notification mirror)
+└── 🔧 .github/    # CI/CD workflows
 ```
+
+### Architecture Overview
+
+**Companion-Centric Design:**
+- 🖥️ **Backend (Ktor)**: Receives webhooks, sends FCM push notifications
+- 📱 **Phone App**: Receives FCM, creates local notifications (auto-mirrors to WearOS)
+- ⌚ **WearOS App**: Lightweight, receives mirrored notifications from Phone
+
+**Key Benefits:**
+- ✅ Single notification source (no duplicates)
+- ⚡ Battery efficient on WearOS
+- 🔄 Automatic Phone→Watch synchronization
+- 🌐 Centralized webhook processing
 
 ## 🔒 Privacy First
 
