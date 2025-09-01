@@ -102,7 +102,6 @@ Thumbs.db
 # Gradle
 .gradle/
 gradle-app.setting
-!gradle-wrapper.jar
 .gradletasknamecache
 
 # Mobile Tools for Java (J2ME)
@@ -110,6 +109,7 @@ gradle-app.setting
 
 # Package Files
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
@@ -143,3 +143,6 @@ hs_err_pid*
 
 # Android Profiling
 *.hprof
+
+# Claude Code local configuration
+.claude/mcp-config.json
