@@ -51,7 +51,7 @@ jobs:
       run: ./gradlew lintDebug --continue
         
     - name: Publish Android Lint Results
-      uses: yutailang0119/action-android-lint@v4
+      uses: yutailang0119/action-android-lint@v5
       if: always()
       with:
         report-path: |
