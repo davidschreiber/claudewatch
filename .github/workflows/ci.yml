@@ -60,7 +60,7 @@ jobs:
         ignore-warnings: false
         
     - name: Upload lint reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: lint-reports
@@ -126,7 +126,7 @@ jobs:
         compare_to_earlier_commit: false
         
     - name: Upload test reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: test-reports
@@ -180,7 +180,7 @@ jobs:
       run: ./gradlew assemble${{ matrix.variant }} --no-daemon
       
     - name: Upload ${{ matrix.variant }} APKs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: apk-${{ matrix.variant }}
         path: |
